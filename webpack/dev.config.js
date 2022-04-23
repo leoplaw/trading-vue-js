@@ -48,8 +48,8 @@ module.exports = (env, options) => ({
             const port = server.listeningApp.address().port
             global.port = port
         },
-        before(app){
-            app.get("/debug", function(req, res) {
+        onBeforeSetupMiddleware(devServer){
+            devServer.app.get("/debug", function(req, res) {
                 try {
                     let argv = JSON.parse(req.query.argv)
                     console.log(...argv)
