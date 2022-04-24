@@ -32,6 +32,8 @@
 
 <script>
 
+import { getCurrentInstance } from 'vue'
+
 import Grid from './Grid.vue'
 import Sidebar from './Sidebar.vue'
 import ChartLegend from './Legend.vue'
@@ -39,38 +41,79 @@ import Shaders from '../mixins/shaders.js'
 
 export default {
     name: 'GridSection',
-    props: ['common', 'grid_id'],
-    emits: [
-        'register-kb-listener', 'remove-kb-listener', 'range-changed',
-        'cursor-changed', 'cursor-locked', 'sidebar-transform',
-        'layer-meta-props', 'custom-event', 'legend-button-click'],
-    mixins: [Shaders],
     components: {
         Grid,
         Sidebar,
         ChartLegend
     },
+    mixins: [Shaders],
+    props: {
+        common: {type: Object, required: true},
+        grid_id: {type: Object, required: true}
+    },
+    emits: [
+        'register-kb-listener', 'remove-kb-listener', 'range-changed',
+        'cursor-changed', 'cursor-locked', 'sidebar-transform',
+        'layer-meta-props', 'custom-event', 'legend-button-click'
+    ],
+
+    setup(props, context) {
+
+        const { emit } = getCurrentInstance()
+        const meta_props = {}
+
+        function range_changed(r) {
+            emit('range-changed', r)
+        }
+        function cursor_changed(c) {
+            c.grid_id = props.grid_id
+            emit('cursor-changed', c)
+        }
+        function cursor_locked(state) {
+            emit('cursor-locked', state)
+        }
+        function sidebar_transform(s) {
+            emit('sidebar-transform', s)
+        }
+        function emit_meta_props(d) {
+            meta_props[d.layer_id] = d
+            emit('layer-meta-props', d)
+        }
+        // function emit_custom_event(d) {
+        //     this.on_shader_event(d, 'sidebar')
+        //     emit('custom-event', d)
+        // }
+
+        return {
+            range_changed,
+            cursor_changed,
+            cursor_locked,
+            sidebar_transform,
+            emit_meta_props,
+        }
+    },
+
     mounted() {
         this.init_shaders(this.$props.common.skin)
     },
     methods: {
-        range_changed(r) {
-            this.$emit('range-changed', r)
-        },
-        cursor_changed(c) {
-            c.grid_id = this.$props.grid_id
-            this.$emit('cursor-changed', c)
-        },
-        cursor_locked(state) {
-            this.$emit('cursor-locked', state)
-        },
-        sidebar_transform(s) {
-            this.$emit('sidebar-transform', s)
-        },
-        emit_meta_props(d) {
-            this.meta_props[d.layer_id] = d
-            this.$emit('layer-meta-props', d)
-        },
+        // range_changed(r) {
+        //     this.$emit('range-changed', r)
+        // },
+        // cursor_changed(c) {
+        //     c.grid_id = this.$props.grid_id
+        //     this.$emit('cursor-changed', c)
+        // },
+        // cursor_locked(state) {
+        //     this.$emit('cursor-locked', state)
+        // },
+        // sidebar_transform(s) {
+        //     this.$emit('sidebar-transform', s)
+        // },
+        // emit_meta_props(d) {
+        //     this.meta_props[d.layer_id] = d
+        //     this.$emit('layer-meta-props', d)
+        // },
         emit_custom_event(d) {
             this.on_shader_event(d, 'sidebar')
             this.$emit('custom-event', d)
