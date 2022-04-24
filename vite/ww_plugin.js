@@ -9,7 +9,7 @@ const lz = require('lz-string')
 
 const PATH = `./src/helpers/tmp/`
 
-export default class WWPlugin {
+module.exports = class WWPlugin {
     apply(compiler) {
         compiler.hooks.afterEmit.tap('AfterEmitPlugin', (compilation) => {
             http.get(`http://localhost:${port}/main.worker.js`, resp => {

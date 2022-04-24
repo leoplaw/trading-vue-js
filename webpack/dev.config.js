@@ -1,73 +1,41 @@
-const VueLoader = require('vue-loader')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const WWPlugin = require('./ww_plugin.js')
-const TerserPlugin = require('terser-webpack-plugin')
-const webpack = require('webpack')
 
-global.port = '8080'
+import { defineConfig } from 'vite';
+import path from 'path';
+import vue from '@vitejs/plugin-vue';
+import vueJsx from '@vitejs/plugin-vue-jsx';
+import envCompatible from 'vite-plugin-env-compatible';
+import { injectHtml } from 'vite-plugin-html';
+import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
+import WWPlugin from './ww_plugin.js'
 
-module.exports = (env, options) => ({
-    entry: './src/main.js',
-    module: {
-        rules: [{
-                test: /\.vue$/,
-                exclude: /node_modules/,
-                loader: 'vue-loader'
-            },
-            {
-                test: /\.js$/,
-                exclude: /node_modules/,
-                loader: 'babel-loader'
-            },
-            {
-                test: /\.css$/,
-                use: [
-                    'vue-style-loader',
-                    'css-loader'
-                ]
-            },
-            {
-                test: /script_ww\.js$/,
-                loader: 'worker-loader'
-            }
-        ]
+// https://vitejs.dev/config/
+export default defineConfig({
+    resolve: {
+      alias: [
+        {
+          find: '@',
+          replacement: path.resolve(__dirname,'src')
+        }
+      ],
+      extensions: [
+        '.mjs',
+        '.js',
+        '.ts',
+        '.jsx',
+        '.tsx',
+        '.json',
+        '.vue'
+      ]
     },
     plugins: [
-        new VueLoader.VueLoaderPlugin(),
-        new HtmlWebpackPlugin({
-            template: './src/index.html'
-        }),
-        new WWPlugin(),
-        new webpack.DefinePlugin({
-            MOB_DEBUG: JSON.stringify(process.env.MOB_DEBUG)
-        })
+      vue(),
+      vueJsx(),
+      viteCommonjs(),
+      envCompatible(),
+      injectHtml(),
+      WWPlugin()
     ],
-    devServer: {
-        host: '0.0.0.0',
-        onListening: function(server) {
-            const port = server.listeningApp.address().port
-            global.port = port
-        },
-        before(app){
-            app.get("/debug", function(req, res) {
-                try {
-                    let argv = JSON.parse(req.query.argv)
-                    console.log(...argv)
-                } catch(e) {}
-                res.send("[OK]")
-            })
-        }
-    },
-    optimization: {
-        minimize: options.mode === 'production',
-        minimizer: [
-            new TerserPlugin({
-                terserOptions: {
-                    mangle: {
-                        reserved: ['_id', '_tf'] // for scripts std
-                    }
-                }
-            })
-        ]
+    build: {
+      rollupOptions: {}
     }
-})
+  })

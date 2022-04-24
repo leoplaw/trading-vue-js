@@ -1,12 +1,13 @@
-const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const VueLoader = require('vue-loader')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const WWPlugin = require('./ww_plugin.js')
+const TerserPlugin = require('terser-webpack-plugin')
 const webpack = require('webpack')
 
 global.port = '8080'
 
-module.exports = {
-    entry: './test/index.js',
+module.exports = (env, options) => ({
+    entry: './src/main.js',
     module: {
         rules: [{
                 test: /\.vue$/,
@@ -32,9 +33,9 @@ module.exports = {
         ]
     },
     plugins: [
-        new VueLoaderPlugin(),
+        new VueLoader.VueLoaderPlugin(),
         new HtmlWebpackPlugin({
-            template: './test/index.html'
+            template: './src/index.html'
         }),
         new WWPlugin(),
         new webpack.DefinePlugin({
@@ -43,21 +44,6 @@ module.exports = {
     ],
     devServer: {
         host: '0.0.0.0',
-        proxy: {
-            '/api/v1/**': {
-                target: 'https://api.binance.com',
-                changeOrigin: true
-            },
-            '/ws/**': {
-                target: 'wss://stream.binance.com:9443',
-                changeOrigin: true,
-                ws: true
-            },
-            '/api/udf/**': {
-                target: 'https://www.bitmex.com',
-                changeOrigin: true
-            },
-        },
         onListening: function(server) {
             const port = server.listeningApp.address().port
             global.port = port
@@ -71,5 +57,17 @@ module.exports = {
                 res.send("[OK]")
             })
         }
+    },
+    optimization: {
+        minimize: options.mode === 'production',
+        minimizer: [
+            new TerserPlugin({
+                terserOptions: {
+                    mangle: {
+                        reserved: ['_id', '_tf'] // for scripts std
+                    }
+                }
+            })
+        ]
     }
-}
+})
