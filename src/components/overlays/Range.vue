@@ -6,10 +6,11 @@ import Overlay from '../../mixins/overlay.js'
 
 export default {
     name: 'Range',
+    props: ["type"],
     mixins: [Overlay],
     methods: {
         meta_info() {
-            return { author: 'C451', version: '1.0.1' }
+            return { author: 'C451, NeoRTek', version: '1.0.2' }
         },
         // Here goes your code. You are provided with:
         // { All stuff is reactive }

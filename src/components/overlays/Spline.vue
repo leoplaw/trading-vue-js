@@ -8,6 +8,7 @@ import Overlay from '../../mixins/overlay.js'
 
 export default {
     name: 'Spline',
+    props: ["type"],
     mixins: [Overlay],
     methods: {
         meta_info() {

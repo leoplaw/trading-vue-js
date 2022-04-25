@@ -87,9 +87,9 @@ export default {
     const grid_shaders = computed(() => shaders.filter((x) => x.target === "grid"))
     const sb_shaders = computed(() => shaders.filter((x) => x.target === "sidebar"))
 
-    watch_skin(props.common.skin);
+    watch_skin(() => common.skin);
 
-    watch(props.common, (val, old_val) => {
+    watch(common, (val, old_val) => {
       let newhash = ghash(val);
       if (newhash !== last_ghash) {
         rerender.value++;

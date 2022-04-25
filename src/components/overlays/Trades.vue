@@ -4,6 +4,7 @@ import Overlay from '../../mixins/overlay.js'
 
 export default {
     name: 'Trades',
+    props: ["type"],
     mixins: [Overlay],
     methods: {
         meta_info() {

@@ -10,6 +10,7 @@ import Price from '../primitives/price.js'
 
 export default {
     name: 'Candles',
+    props: ["type"],
     mixins: [Overlay],
     methods: {
         meta_info() {

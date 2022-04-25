@@ -6,6 +6,8 @@
 
 export default {
   name: "KeyboardListener",
+  // were passed to component but could not be automatically inherited
+  props: ["onkeyup", "onkeydown", "onkeypress"],
   emits: [
     "register-kb-listener",
     "remove-kb-listener",
