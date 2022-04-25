@@ -5,36 +5,31 @@
 <script>
 
 export default {
-    name: 'KeyboardListener',
-    emits: [
-        'register-kb-listener', 'remove-kb-listener',
-        'keydown', 'keyup', 'keypress'
-    ],
-    render() { return [] },
-    created: function () {
-        this.$emit('register-kb-listener', {
-            id: this._uid,
-            keydown: this.keydown,
-            keyup: this.keyup,
-            keypress: this.keypress
-        })
-    },
-    beforeUnmount: function () {
-        this.$emit('remove-kb-listener', {
-            id: this._uid
-        })
-    },
-    methods: {
-        keydown (event) {
-            this.$emit('keydown', event)
-        },
-        keyup (event) {
-            this.$emit('keyup', event)
-        },
-        keypress (event) {
-            this.$emit('keypress', event)
-        },
-    }
+  name: "KeyboardListener",
+  emits: [
+    "register-kb-listener",
+    "remove-kb-listener",
+    "keydown",
+    "keyup",
+    "keypress",
+  ],
+
+  setup(_props, ctx) {
+    const keydown = (event) => {
+      ctx.emit("keydown", event);
+    };
+    const keyup = (event) => {
+      ctx.emit("keyup", event);
+    };
+    const keypress = (event) => {
+      ctx.emit("keypress", event);
+    };
+    return { keydown, keyup, keypress };
+  },
+
+  render() {
+    return [];
+  },
 }
 
 </script>
