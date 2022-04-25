@@ -32,7 +32,7 @@ export default {
     emits: [
         'custom-event', 'register-tools', 'layer-meta-props',
         'register-kb-listener', 'remove-kb-listener', 'cursor-changed',
-        'cursor-locked', 'rezoom-range', 'sidebar-transform'],
+        'cursor-locked', 'rezoom-range', 'sidebar-transform','grid-mousedown'],
     mixins: [Canvas, UxList],
     components: { Crosshair, KeyboardListener },
     created() {

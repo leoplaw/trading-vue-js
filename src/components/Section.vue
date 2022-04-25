@@ -57,7 +57,7 @@ export default {
   },
   props: {
     common: { type: Object, required: true },
-    grid_id: { type: Object, required: true },
+    grid_id: { type: Number, required: true },
   },
   emits: [
     "register-kb-listener",
