@@ -78,7 +78,7 @@ export default {
     const grid = ref(null)
     const sb = ref(null)
     const rerender = ref(0)
-    const last_ghash = ref("")
+      let last_ghash = ""
     const grid_props = computed(() => get_grid_props())
     const sidebar_props = computed(() => get_sidebar_props())
     const section_values = computed(() => get_section_values())
@@ -197,7 +197,6 @@ export default {
     return {
       meta_props,
       rerender,
-      last_ghash,
       grid_props,
       sidebar_props,
       section_values,
