@@ -37,12 +37,7 @@
 </template>
 
 <script>
-import {
-  toRefs,
-  ref,
-  computed,
-  onMounted,
-} from "vue";
+import { computed, onMounted, reactive, ref, toRefs, watch } from "vue";
 import Grid from "./Grid.vue";
 import Sidebar from "./Sidebar.vue";
 import ChartLegend from "./Legend.vue";
@@ -52,6 +47,7 @@ import {
   watch_skin,
   shaders,
 } from "../mixins/shaders_.js";
+
 export default {
   name: "GridSection",
   components: {
@@ -59,7 +55,10 @@ export default {
     Sidebar,
     ChartLegend,
   },
-  props: ["common", "grid_id"],
+  props: {
+    common: { type: Object, required: true },
+    grid_id: { type: Object, required: true },
+  },
   emits: [
     "register-kb-listener",
     "remove-kb-listener",
@@ -73,60 +72,36 @@ export default {
   ],
 
   setup(props, ctx) {
-    const { common, grid_id } = toRefs(props);
-    const meta_props = ref({});
-    const sb = ref(null);
-    const rerender = ref(0);
-    const last_ghash = ref("");
-    const grid_props = computed(() => {
-      const id = props.grid_id;
-      let p = Object.assign({}, props.common);
-      if (id > 0) {
-        let all = p.data;
-        p.data = [p.data[id - 1]];
-        p.data.push(...all.filter((x) => x.grid && x.grid.id === id));
+    const { common, grid_id } = toRefs(props)
+    const meta_props = reactive({})
+    const legend = ref(null)
+    const grid = ref(null)
+    const sb = ref(null)
+    const rerender = ref(0)
+    const last_ghash = ref("")
+    const grid_props = computed(() => get_grid_props())
+    const sidebar_props = computed(() => get_sidebar_props())
+    const section_values = computed(() => get_section_values())
+    const legend_props = computed(() => get_legend_props())
+    const get_meta_props = computed(() => meta_props)
+    const grid_shaders = computed(() => shaders.filter((x) => x.target === "grid"))
+    const sb_shaders = computed(() => shaders.filter((x) => x.target === "sidebar"))
+
+    watch_skin(props.common.skin);
+
+    watch(props.common, (val, old_val) => {
+      let newhash = ghash(val);
+      if (newhash !== last_ghash) {
+        rerender.value++;
       }
-      p.width = p.layout.grids[id].width;
-      p.height = p.layout.grids[id].height;
-      p.y_transform = p.y_ts[id];
-      p.shaders = grid_shaders.value;
-      return p;
-    });
-    const sidebar_props = computed(() => {
-      const id = props.grid_id;
-      let p = Object.assign({}, props.common);
-      p.width = p.layout.grids[id].sb;
-      p.height = p.layout.grids[id].height;
-      p.y_transform = p.y_ts[id];
-      p.shaders = sb_shaders.value;
-      return p;
-    });
-    const section_values = computed(() => {
-      const id = props.grid_id;
-      let p = Object.assign({}, props.common);
-      p.width = p.layout.grids[id].width;
-      return p.cursor.values[id];
-    });
-    const legend_props = computed(() => {
-      const id = props.grid_id;
-      let p = Object.assign({}, props.common);
-      if (id > 0) {
-        let all = p.data;
-        p.offchart = all;
-        p.data = [p.data[id - 1]];
-        p.data.push(...all.filter((x) => x.grid && x.grid.id === id));
+
+      if (val.data.length !== old_val.data.length) {
+        // Look at this nasty trick!
+        rerender.value++;
       }
-      return p;
+      last_ghash = newhash;
     });
-    const get_meta_props = computed(() => {
-      return meta_props.value;
-    });
-    const grid_shaders = computed(() => {
-      return shaders.filter((x) => x.target === "grid");
-    });
-    const sb_shaders = computed(() => {
-      return shaders.filter((x) => x.target === "sidebar");
-    });
+
     function range_changed(r) {
       ctx.emit("range-changed", r);
     }
@@ -167,6 +142,55 @@ export default {
       let hs = val.layout.grids.map((x) => x.height);
       return hs.reduce((a, b) => a + b, "");
     }
+    // Component-specific props subsets:
+    function get_grid_props() {
+      const id = props.grid_id;
+      let p = Object.assign({}, props.common);
+
+      // Split offchart data between offchart grids
+      if (id > 0) {
+        let all = p.data;
+        p.data = [p.data[id - 1]];
+        // Merge offchart overlays with custom ids with
+        // the existing onse (by comparing the grid ids)
+        p.data.push(...all.filter((x) => x.grid && x.grid.id === id));
+      }
+
+      p.width = p.layout.grids[id].width;
+      p.height = p.layout.grids[id].height;
+      p.y_transform = p.y_ts[id];
+      p.shaders = grid_shaders.value;
+      return p;
+    }
+    function get_sidebar_props() {
+      const id = props.grid_id;
+      let p = Object.assign({}, props.common);
+      p.width = p.layout.grids[id].sb;
+      p.height = p.layout.grids[id].height;
+      p.y_transform = p.y_ts[id];
+      p.shaders = sb_shaders.value;
+      return p;
+    }
+    function get_section_values() {
+      const id = props.grid_id;
+      let p = Object.assign({}, props.common);
+      p.width = p.layout.grids[id].width;
+      return p.cursor.values[id];
+    }
+    function get_legend_props() {
+      const id = props.grid_id;
+      let p = Object.assign({}, props.common);
+
+      // Split offchart data between offchart grids
+      if (id > 0) {
+        let all = p.data;
+        p.offchart = all;
+        p.data = [p.data[id - 1]];
+        p.data.push(...all.filter((x) => x.grid && x.grid.id === id));
+      }
+      return p;
+    }
+
     onMounted(() => {
       init_shaders(props.common.skin);
     });
@@ -181,6 +205,8 @@ export default {
       get_meta_props,
       grid_shaders,
       sb_shaders,
+      legend,
+      grid,
       range_changed,
       cursor_changed,
       cursor_locked,
